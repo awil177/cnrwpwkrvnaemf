@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050711">
+  <title>Festival Prize Draw</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="ambientCanvas" aria-hidden="true"></canvas>
+  <div class="noise" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="축제 경품 추첨 프로그램">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span>FESTIVAL // DRAW</span>
+      </div>
+      <div class="top-actions">
+        <button class="icon-button" id="soundButton" type="button" aria-label="소리 켜기 또는 끄기" title="소리 켜기 또는 끄기">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 4V5L9 9H5zm11.5 3a4.5 4.5 0 0 0-1.5-3.35v6.7A4.5 4.5 0 0 0 16.5 12zm0-8.2v2.06a7 7 0 0 1 0 12.28v2.06a9 9 0 0 0 0-16.4z"/></svg>
+        </button>
+        <button class="icon-button" id="fullscreenButton" type="button" aria-label="전체 화면" title="전체 화면">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-stage">
+      <section class="hero-copy" aria-labelledby="eventTitle">
+        <div class="eyebrow"><span></span> ON-SITE PRIZE DRAW</div>
+        <h1 id="eventTitle">대광고 축제<br><em>스페셜 드로우</em></h1>
+        <p id="eventSubtitle">버튼을 누르고 오늘의 행운을 확인하세요.</p>
+
+        <div class="status-grid">
+          <div class="status-card">
+            <span>남은 경품</span>
+            <strong id="remainingCount">0</strong>
+          </div>
+          <div class="status-card">
+            <span>누적 추첨</span>
+            <strong id="drawCount">0</strong>
+          </div>
+        </div>
+
+        <div class="odds-strip" id="publicOdds" aria-label="등급별 설정 확률"></div>
+        <p class="odds-note">※ 해당 등급의 재고가 없으면 남은 등급끼리 확률이 자동 조정됩니다.</p>
+      </section>
+
+      <section class="draw-zone" aria-label="경품 뽑기">
+        <div class="machine-frame">
+          <span class="corner corner-tl"></span>
+          <span class="corner corner-tr"></span>
+          <span class="corner corner-bl"></span>
+          <span class="corner corner-br"></span>
+
+          <div class="portal" aria-hidden="true">
+            <div class="portal-halo halo-1"></div>
+            <div class="portal-halo halo-2"></div>
+            <div class="portal-halo halo-3"></div>
+            <div class="portal-orbit orbit-1"><i></i></div>
+            <div class="portal-orbit orbit-2"><i></i></div>
+            <div class="portal-core">
+              <div class="core-sigil">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="portal-shard shard-1"></div>
+            <div class="portal-shard shard-2"></div>
+            <div class="portal-shard shard-3"></div>
+            <div class="portal-shard shard-4"></div>
+          </div>
+
+          <div class="machine-copy">
+            <span>LUCK SIGNAL READY</span>
+            <b id="machineStatus">경품 신호가 감지되었습니다</b>
+          </div>
+
+          <button class="draw-button" id="drawButton" type="button">
+            <span class="button-glow"></span>
+            <span class="button-label"><strong>뽑기</strong></span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>OFFLINE EVENT SYSTEM</span>
+      <span class="footer-line"></span>
+      <span id="clock">--:--:--</span>
+    </footer>
+  </div>
+
+  <section class="effect-layer" id="effectLayer" aria-hidden="true">
+    <canvas id="effectCanvas"></canvas>
+    <div class="effect-sky" aria-hidden="true">
+      <div class="aurora aurora-a"></div>
+      <div class="aurora aurora-b"></div>
+      <div class="aurora aurora-c"></div>
+    </div>
+    <div class="hero-meteor" aria-hidden="true">
+      <i class="meteor-tail tail-a"></i>
+      <i class="meteor-tail tail-b"></i>
+      <i class="meteor-tail tail-c"></i>
+      <b></b>
+    </div>
+    <div class="effect-vignette"></div>
+    <div class="effect-flash"></div>
+    <div class="effect-gate">
+      <div class="gate-ring gate-ring-a"></div>
+      <div class="gate-ring gate-ring-b"></div>
+      <div class="gate-core"></div>
+      <div class="gate-line line-1"></div>
+      <div class="gate-line line-2"></div>
+      <div class="gate-line line-3"></div>
+      <div class="gate-line line-4"></div>
+    </div>
+    <div class="tier-signal" id="tierSignal"><span>GRADE</span><strong>S</strong></div>
+  </section>
+
+  <section class="modal result-modal" id="resultModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="resultName">
+    <div class="result-backdrop"></div>
+    <div class="result-card">
+      <div class="result-rays" aria-hidden="true"></div>
+      <div class="result-grade" id="resultGrade">S</div>
+      <div class="result-media" id="resultMedia"><span>✦</span></div>
+      <p class="result-kicker">PRIZE ACQUIRED</p>
+      <h2 id="resultName">특별 경품</h2>
+      <p class="result-stock" id="resultStock">남은 수량 0개</p>
+      <button class="continue-button" id="continueButton" type="button">확인</button>
+    </div>
+  </section>
+
+  <section class="modal pin-modal" id="pinModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+    <div class="modal-dim" data-close="pin"></div>
+    <form class="pin-card" id="pinForm">
+      <span class="admin-chip">ADMIN ACCESS</span>
+      <h2 id="pinTitle">개발자 모드</h2>
+      <p>관리자 PIN을 입력하세요.</p>
+      <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="PIN">
+      <p class="form-error" id="pinError"></p>
+      <div class="dialog-actions">
+        <button class="ghost-button" type="button" data-close="pin">취소</button>
+        <button class="primary-button" type="submit">입장</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="admin-panel" id="adminPanel" aria-hidden="true" aria-label="개발자 모드">
+    <header class="admin-header">
+      <div>
+        <span class="admin-chip">DEVELOPER MODE</span>
+        <h2>축제 경품 관리</h2>
+      </div>
+      <button class="admin-close" id="adminClose" type="button" aria-label="개발자 모드 닫기">×</button>
+    </header>
+
+    <nav class="admin-tabs" aria-label="관리 메뉴">
+      <button class="admin-tab active" type="button" data-tab="items">상품 관리</button>
+      <button class="admin-tab" type="button" data-tab="settings">확률·화면 설정</button>
+      <button class="admin-tab" type="button" data-tab="history">기록·백업</button>
+    </nav>
+
+    <div class="admin-body">
+      <section class="tab-panel active" data-panel="items">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">PRIZE INVENTORY</p>
+            <h3>경품 목록</h3>
+            <p>품목별 비중은 같은 등급 안에서 당첨될 상대적인 비율입니다.</p>
+          </div>
+          <button class="primary-button" id="newItemButton" type="button">+ 상품 추가</button>
+        </div>
+
+        <form class="item-editor hidden" id="itemForm">
+          <input id="editItemId" type="hidden">
+          <div class="editor-title-row">
+            <h4 id="itemFormTitle">새 상품 추가</h4>
+            <button id="cancelItemButton" type="button" aria-label="상품 편집 취소">×</button>
+          </div>
+          <div class="form-grid">
+            <label class="field field-wide">상품 이름
+              <input id="itemName" type="text" maxlength="40" required placeholder="예: 블루투스 스피커">
+            </label>
+            <label class="field">등급
+              <select id="itemTier" required>
+                <option value="S">S급</option>
+                <option value="A">A급</option>
+                <option value="B">B급</option>
+                <option value="C">C급</option>
+              </select>
+            </label>
+            <label class="field">남은 수량
+              <input id="itemStock" type="number" min="0" max="99999" step="1" value="1" required>
+            </label>
+            <label class="field">품목별 비중
+              <input id="itemWeight" type="number" min="0.01" max="9999" step="0.01" value="1" required>
+            </label>
+            <label class="field">아이콘
+              <input id="itemIcon" type="text" maxlength="4" value="🎁" placeholder="🎁">
+            </label>
+            <label class="field field-wide image-field">상품 이미지 (선택)
+              <input id="itemImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+              <span>이미지를 고르면 프로그램 내부에 작게 저장됩니다.</span>
+            </label>
+          </div>
+          <div class="image-preview" id="imagePreview"><span>미리보기</span></div>
+          <div class="editor-actions">
+            <label class="toggle-row"><input id="itemActive" type="checkbox" checked><span></span>추첨에 포함</label>
+            <button class="primary-button" type="submit">상품 저장</button>
+          </div>
+        </form>
+
+        <div class="tier-summary" id="tierSummary"></div>
+        <div class="item-list" id="itemList"></div>
+      </section>
+
+      <section class="tab-panel" data-panel="settings">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">DRAW CONFIGURATION</p>
+            <h3>확률·화면 설정</h3>
+            <p>등급 확률의 합계는 반드시 100%여야 합니다.</p>
+          </div>
+        </div>
+
+        <form id="settingsForm">
+          <div class="settings-card">
+            <h4>등급 확률</h4>
+            <div class="probability-grid">
+              <label class="prob-field tier-S"><span><b>S</b>S급 확률</span><input id="probS" type="number" min="0" max="100" step="0.01"></label>
+              <label class="prob-field tier-A"><span><b>A</b>A급 확률</span><input id="probA" type="number" min="0" max="100" step="0.01"></label>
+              <label class="prob-field tier-B"><span><b>B</b>B급 확률</span><input id="probB" type="number" min="0" max="100" step="0.01"></label>
+              <label class="prob-field tier-C"><span><b>C</b>C급 확률</span><input id="probC" type="number" min="0" max="100" step="0.01"></label>
+            </div>
+            <div class="probability-total"><span>현재 합계</span><strong id="probabilityTotal">100%</strong></div>
+            <div class="effect-previews">
+              <span>연출 미리보기 (재고 차감 없음)</span>
+              <div>
+                <button type="button" data-preview-tier="S">S</button>
+                <button type="button" data-preview-tier="A">A</button>
+                <button type="button" data-preview-tier="B">B</button>
+                <button type="button" data-preview-tier="C">C</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h4>화면 정보</h4>
+            <div class="form-grid">
+              <label class="field field-wide">행사 제목
+                <input id="settingTitle" type="text" maxlength="40" required>
+              </label>
+              <label class="field field-wide">안내 문구
+                <input id="settingSubtitle" type="text" maxlength="80" required>
+              </label>
+              <label class="field">관리자 PIN
+                <input id="settingPin" type="password" minlength="4" maxlength="20" required>
+              </label>
+              <label class="field">연출 속도
+                <select id="settingSpeed">
+                  <option value="normal">기본</option>
+                  <option value="fast">빠르게</option>
+                </select>
+              </label>
+            </div>
+            <label class="toggle-row setting-toggle"><input id="settingSound" type="checkbox"><span></span>기본 사운드 켜기</label>
+          </div>
+
+          <div class="sticky-save">
+            <p class="form-error" id="settingsError"></p>
+            <button class="primary-button" type="submit">설정 저장</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="tab-panel" data-panel="history">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">LOG & BACKUP</p>
+            <h3>추첨 기록·백업</h3>
+            <p>마지막 추첨을 취소하면 해당 상품 재고가 1개 복구됩니다.</p>
+          </div>
+          <button class="ghost-button" id="undoButton" type="button">마지막 추첨 취소</button>
+        </div>
+
+        <div class="history-stats" id="historyStats"></div>
+        <div class="history-list" id="historyList"></div>
+
+        <div class="backup-card">
+          <h4>설정 백업</h4>
+          <p>다른 컴퓨터로 옮기거나 문제가 생겼을 때 복구할 수 있도록 JSON 파일로 저장하세요.</p>
+          <div class="backup-actions">
+            <button class="primary-button" id="exportButton" type="button">백업 파일 저장</button>
+            <button class="ghost-button" id="importButton" type="button">백업 불러오기</button>
+            <button class="danger-button" id="clearHistoryButton" type="button">기록만 삭제</button>
+            <button class="danger-button" id="factoryResetButton" type="button">전체 초기화</button>
+          </div>
+          <input id="importFile" type="file" accept="application/json,.json" hidden>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

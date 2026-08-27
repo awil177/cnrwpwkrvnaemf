@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bounce Bet Arena</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script src="characters.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app game-shell" id="appRoot" data-screen="MENU">
+    <header class="topbar app-header">
+      <div class="brand-block">
+        <p class="eyebrow">AUTO BATTLE FESTIVAL</p>
+        <h1>Bounce Bet Arena</h1>
+      </div>
+      <div class="scoreboard" aria-label="게임 점수">
+        <div class="score-box nickname-box" id="nicknameBox" hidden>
+          <span>닉네임</span>
+          <strong id="nicknameDisplay">-</strong>
+        </div>
+        <div class="score-box">
+          <span>전장 코인</span>
+          <strong id="coinDisplay">100</strong>
+        </div>
+        <div class="score-box">
+          <span>최고 기록</span>
+          <strong id="bestDisplay">100</strong>
+        </div>
+        <div class="future-tool-slot" aria-hidden="true"></div>
+      </div>
+    </header>
+
+    <main class="stage-root">
+      <section class="screen-view menu-screen" id="menuView" data-view="MENU" aria-label="시작 메뉴">
+        <div class="menu-coin-card" aria-label="전장 코인">
+          <span>전장 코인</span>
+          <strong id="menuCoinDisplay">100</strong>
+        </div>
+        <div class="menu-panel">
+          <p class="eyebrow">SCHOOL FESTIVAL AUTO BATTLE</p>
+          <h2>Bounce Bet Arena</h2>
+          <p class="menu-tagline">캐릭터를 고르고 승부를 예측하라</p>
+          <p class="menu-description">최강자를 예측하라</p>
+          <div class="menu-actions">
+            <button class="menu-main-button" id="menuStartButton" type="button">게임 시작</button>
+            <button class="menu-sub-button" id="menuRankingButton" type="button">랭킹</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-view nickname-screen" id="nicknameView" data-view="NICKNAME" aria-label="닉네임 입력" hidden>
+        <div class="nickname-panel">
+          <span class="screen-kicker">NEW GAME</span>
+          <h2>닉네임 설정</h2>
+          <p>이번 게임에서 사용할 닉네임을 입력하세요.</p>
+          <label class="nickname-field">
+            <span>닉네임</span>
+            <input id="nicknameInput" type="text" maxlength="12" autocomplete="off" placeholder="2~12자">
+          </label>
+          <p class="nickname-message" id="nicknameMessage" aria-live="polite"></p>
+          <div class="nickname-actions">
+            <button class="menu-sub-button" id="nicknameBackButton" type="button">뒤로 가기</button>
+            <button class="menu-main-button" id="nicknameConfirmButton" type="button">확인</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-view ranking-screen" id="rankingView" data-view="RANKING" aria-label="랭킹" hidden>
+        <div class="ranking-panel">
+          <span class="screen-kicker">LOCAL RANKING</span>
+          <h2>랭킹</h2>
+          <div class="ranking-list" id="rankingList"></div>
+          <button class="menu-sub-button" id="rankingBackButton" type="button">뒤로 가기</button>
+        </div>
+      </section>
+
+      <section class="screen-view battlefield-screen" id="battlefieldView" data-view="BATTLEFIELD" aria-label="전장 선택" hidden>
+        <div class="battlefield-panel">
+          <span class="screen-kicker" id="battlefieldRoundLabel">ROUND 2</span>
+          <h2>전장 선택</h2>
+          <p>이번 라운드에 적용할 전장을 선택하세요.</p>
+          <div class="battlefield-choice-grid" id="battlefieldChoices"></div>
+          <div class="battlefield-decision-row">
+            <button id="battlefieldConfirmButton" type="button" disabled>전장 결정</button>
+          </div>
+          <div class="battlefield-reroll-row">
+            <button id="battlefieldRerollButton" type="button">리롤 - 현재 코인의 10%</button>
+          </div>
+          <p class="battlefield-message" id="battlefieldMessage" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="screen-view matchup-screen" id="matchupView" data-view="MATCHUP" aria-label="매치업 및 승부 예측" hidden>
+        <div class="matchup-hero matchup-versus-grid">
+          <div class="matchup-side matchup-side-a">
+            <section class="character-panel matchup-card matchup-info-card panel-a" aria-label="캐릭터 A 기본 정보">
+              <div class="panel-heading">
+                <span class="side-mark side-a">A</span>
+                <h2 id="nameA">캐릭터 A</h2>
+              </div>
+              <div class="portrait matchup-portrait matchup-character-image" id="portraitA">이미지 준비 중</div>
+              <p class="description" id="descriptionA"></p>
+              <div class="hp-block compact">
+                <div class="hp-top">
+                  <span>체력</span>
+                  <b id="hpTextA">0 / 0</b>
+                </div>
+                <div class="hp-bar"><i id="hpBarA"></i></div>
+              </div>
+              <dl class="stats stat-chips">
+                <div><dt>공격</dt><dd id="atkA">0</dd></div>
+                <div><dt>방어</dt><dd id="defA">0</dd></div>
+                <div><dt>속도</dt><dd id="speedA">0</dd></div>
+              </dl>
+              <p class="ability" id="abilityA"></p>
+            </section>
+
+            <aside class="matchup-skill-panel matchup-skill-panel-a" aria-label="A 스킬 전용 패널">
+              <div class="matchup-skill-heading">
+                <span>A</span>
+                <strong>스킬</strong>
+              </div>
+              <div class="skill-card-list matchup-skill-list" id="matchupSkillsA" aria-label="A 스킬 목록"></div>
+            </aside>
+          </div>
+
+          <div class="vs-badge" aria-hidden="true">VS</div>
+
+          <div class="matchup-side matchup-side-b">
+            <section class="character-panel matchup-card matchup-info-card panel-b" aria-label="캐릭터 B 기본 정보">
+              <div class="panel-heading">
+                <span class="side-mark side-b">B</span>
+                <h2 id="nameB">캐릭터 B</h2>
+              </div>
+              <div class="portrait matchup-portrait matchup-character-image" id="portraitB">이미지 준비 중</div>
+              <p class="description" id="descriptionB"></p>
+              <div class="hp-block compact">
+                <div class="hp-top">
+                  <span>체력</span>
+                  <b id="hpTextB">0 / 0</b>
+                </div>
+                <div class="hp-bar"><i id="hpBarB"></i></div>
+              </div>
+              <dl class="stats stat-chips">
+                <div><dt>공격</dt><dd id="atkB">0</dd></div>
+                <div><dt>방어</dt><dd id="defB">0</dd></div>
+                <div><dt>속도</dt><dd id="speedB">0</dd></div>
+              </dl>
+              <p class="ability" id="abilityB"></p>
+            </section>
+
+            <aside class="matchup-skill-panel matchup-skill-panel-b" aria-label="B 스킬 전용 패널">
+              <div class="matchup-skill-heading">
+                <span>B</span>
+                <strong>스킬</strong>
+              </div>
+              <div class="skill-card-list matchup-skill-list" id="matchupSkillsB" aria-label="B 스킬 목록"></div>
+            </aside>
+          </div>
+        </div>
+
+        <section class="bet-console" aria-label="승부 예측 설정">
+          <div class="bet-input-row">
+            <label class="bet-input">
+              <span>예측 코인</span>
+              <input id="betAmount" type="number" min="1" step="1" value="10">
+            </label>
+            <div class="quick-bets" aria-label="빠른 예측 코인">
+              <button type="button" data-bet-quick="10">10</button>
+              <button type="button" data-bet-quick="50">50</button>
+              <button type="button" data-bet-quick="100">100</button>
+              <button type="button" data-bet-quick="all">전액</button>
+            </div>
+          </div>
+          <div class="bet-actions">
+            <button class="bet-button side-a-bet" id="betA" type="button">A 승리 예측</button>
+            <button class="bet-button side-b-bet" id="betB" type="button">B 승리 예측</button>
+          </div>
+          <p class="bet-message" id="betMessage" aria-live="polite">응원할 진영과 예측 코인을 선택하세요.</p>
+          <button class="start-battle-button" id="startButton" type="button">전투 시작</button>
+        </section>
+      </section>
+
+      <section class="screen-view battle-screen" id="battleView" data-view="BATTLE" aria-label="전투 화면" hidden>
+        <div class="battle-hud">
+          <div class="hud-fighter hud-a">
+            <div class="hud-avatar battle-hud-avatar" id="hudPortraitA">A</div>
+            <div class="hud-main">
+              <strong id="hudNameA">캐릭터 A</strong>
+              <span id="hudHpTextA">0 / 0</span>
+              <div class="hud-hp"><i id="hudHpBarA"></i></div>
+              <div class="status-icons" id="statusIconsA"></div>
+            </div>
+          </div>
+
+          <div class="battle-center-status">
+            <span id="roundDisplay">Round 1</span>
+            <strong id="stateDisplay">승부 예측 대기</strong>
+            <div class="battle-timer" id="battleTimer">경과 시간 00:00.0</div>
+          </div>
+
+          <div class="hud-fighter hud-b">
+            <div class="hud-main">
+              <strong id="hudNameB">캐릭터 B</strong>
+              <span id="hudHpTextB">0 / 0</span>
+              <div class="hud-hp"><i id="hudHpBarB"></i></div>
+              <div class="status-icons" id="statusIconsB"></div>
+            </div>
+            <div class="hud-avatar battle-hud-avatar" id="hudPortraitB">B</div>
+          </div>
+        </div>
+
+        <div class="battle-core">
+          <aside class="battle-side-panel battle-side-a" aria-label="A 스킬 상태">
+            <div class="side-panel-title"><span>A</span><strong>스킬 상태</strong></div>
+            <div class="battle-character-card battle-character-card-a" id="battleCharacterCardA">
+              <div class="battle-character-portrait battle-side-portrait" id="battlePortraitA">
+                <span class="battle-portrait-initial">A</span>
+                <small>이미지 준비 중</small>
+              </div>
+              <div class="battle-character-info">
+                <strong id="battleCharacterNameA">캐릭터 A</strong>
+                <div class="battle-character-health" aria-label="A health">
+                  <span id="battleCharacterHpA">0 / 0</span>
+                  <span class="battle-character-hp-gauge"><i id="battleCharacterHpBarA"></i></span>
+                </div>
+                <dl class="battle-character-stats" aria-label="A 기본 능력치">
+                  <div><dt>공격</dt><dd id="battleCharacterAtkA">0</dd></div>
+                  <div><dt>방어</dt><dd id="battleCharacterDefA">0</dd></div>
+                  <div><dt>속도</dt><dd id="battleCharacterSpeedA">0</dd></div>
+                </dl>
+              </div>
+            </div>
+            <div class="side-skill-strip" id="battleSkillsA" aria-label="A 전투 스킬"></div>
+          </aside>
+
+          <div class="arena-column">
+            <div class="arena-wrap">
+              <div class="arena" id="arena">
+                <div class="arena-lines" aria-hidden="true"></div>
+                <div class="skill-layer" id="skillLayer" aria-hidden="true"></div>
+                <div class="battle-countdown" id="battleCountdown" hidden aria-live="polite">
+                  <span>전투 준비</span>
+                  <strong>3</strong>
+                </div>
+                <div class="fighter fighter-a" id="fighterA">
+                  <span class="fighter-name">A</span>
+                  <span class="mini-hp"><i id="miniHpA"></i></span>
+                </div>
+                <div class="fighter fighter-b" id="fighterB">
+                  <span class="fighter-name">B</span>
+                  <span class="mini-hp"><i id="miniHpB"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="battle-side-panel battle-side-b" aria-label="B 스킬 상태">
+            <div class="side-panel-title"><span>B</span><strong>스킬 상태</strong></div>
+            <div class="battle-character-card battle-character-card-b" id="battleCharacterCardB">
+              <div class="battle-character-portrait battle-side-portrait" id="battlePortraitB">
+                <span class="battle-portrait-initial">B</span>
+                <small>이미지 준비 중</small>
+              </div>
+              <div class="battle-character-info">
+                <strong id="battleCharacterNameB">캐릭터 B</strong>
+                <div class="battle-character-health" aria-label="B health">
+                  <span id="battleCharacterHpB">0 / 0</span>
+                  <span class="battle-character-hp-gauge"><i id="battleCharacterHpBarB"></i></span>
+                </div>
+                <dl class="battle-character-stats" aria-label="B 기본 능력치">
+                  <div><dt>공격</dt><dd id="battleCharacterAtkB">0</dd></div>
+                  <div><dt>방어</dt><dd id="battleCharacterDefB">0</dd></div>
+                  <div><dt>속도</dt><dd id="battleCharacterSpeedB">0</dd></div>
+                </dl>
+              </div>
+            </div>
+            <div class="side-skill-strip" id="battleSkillsB" aria-label="B 전투 스킬"></div>
+          </aside>
+        </div>
+
+        <section class="log-panel" id="logPanel">
+          <div class="log-summary-area">
+            <div class="log-head">
+              <h2>전투 로그</h2>
+              <button class="log-toggle" id="logToggleButton" type="button">전체 로그 보기</button>
+            </div>
+            <div class="battle-log" id="battleLog" aria-live="polite"></div>
+          </div>
+          <div class="combat-controls" aria-label="전투 제어">
+            <button class="combat-control-button" id="pauseButton" type="button" disabled>⏸ 일시정지</button>
+            <button class="combat-control-button" id="speedButton" type="button" disabled>×1 배속</button>
+          </div>
+        </section>
+
+        <section class="training-panel" id="trainingPanel" hidden>
+          <div class="training-stats">
+            <strong>훈련장</strong>
+            <span id="trainingSelectedSkill">스킬 대기</span>
+            <span>누적 피해 <b id="trainingTotalDamage">0</b></span>
+            <span>최근 피해 <b id="trainingLastDamage">0</b></span>
+            <span>DPS <b id="trainingDps">0</b></span>
+          </div>
+          <div class="training-controls">
+            <button id="trainingHealButton" type="button">체력 회복</button>
+            <button id="trainingCooldownButton" type="button">쿨타임 초기화</button>
+            <button id="trainingCleanseButton" type="button">상태이상 제거</button>
+            <button id="trainingPositionButton" type="button">위치 초기화</button>
+            <button id="trainingCollisionButton" type="button">1회 충돌</button>
+            <button id="trainingResetButton" type="button">전투 초기화</button>
+            <button id="trainingExitButton" type="button">훈련장 종료</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="screen-view result-screen" id="resultOverlay" data-view="RESULT" aria-live="polite" hidden>
+        <div class="result-panel" id="resultPanel" role="dialog" aria-labelledby="resultTitle">
+          <div class="result-kicker" id="resultKicker">WINNER</div>
+          <div class="result-combatants">
+            <div class="result-fighter winner">
+              <div class="result-portrait result-character-portrait" id="resultWinnerPortrait"></div>
+              <div>
+                <span>승리</span>
+                <strong id="resultTitle">승리 캐릭터</strong>
+              </div>
+            </div>
+            <div class="result-fighter loser" hidden>
+              <div class="result-portrait result-character-portrait" id="resultLoserPortrait"></div>
+              <div>
+                <span>패배</span>
+                <strong id="resultLoserName">패배 캐릭터</strong>
+              </div>
+            </div>
+          </div>
+          <div class="result-summary-grid">
+            <div>
+              <span>승부 예측</span>
+              <strong id="resultBetStatus">예측 결과</strong>
+            </div>
+            <div>
+              <span>내가 선택한 캐릭터</span>
+              <strong id="resultBetTarget">예측 캐릭터</strong>
+            </div>
+            <div>
+              <span>전장 코인 변화</span>
+              <strong class="result-coin" id="resultCoinDelta">+0 코인</strong>
+            </div>
+          </div>
+          <p class="result-total" id="resultCoinTotal">현재 전장 코인: 0</p>
+          <p class="result-best-note" id="resultBestNote" hidden></p>
+          <p class="result-gameover" id="resultGameOver" hidden>GAME OVER<br>전장 코인을 모두 사용했습니다.</p>
+          <div class="result-highlights" id="resultHighlights" hidden></div>
+          <div class="result-actions">
+            <button id="resultNextButton" type="button">다음 라운드</button>
+            <button id="resultRestartButton" type="button">처음부터 다시 시작</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="skill-popup" id="skillPopup" hidden>
+    <div class="skill-popup-panel" role="dialog" aria-modal="true" aria-labelledby="skillPopupTitle">
+      <button class="skill-popup-close" id="skillPopupClose" type="button" aria-label="스킬 설명 닫기">×</button>
+      <span class="skill-popup-kind" id="skillPopupKind">스킬</span>
+      <h2 id="skillPopupTitle">스킬 이름</h2>
+      <p id="skillPopupDescription"></p>
+      <dl id="skillPopupStats"></dl>
+    </div>
+  </div>
+
+  <button class="dev-trigger" id="devTrigger" type="button" aria-expanded="false" aria-controls="devLogin">DEV</button>
+
+  <div class="dev-login" id="devLogin" hidden>
+    <div class="dev-login-head">
+      <strong>DEV CODE</strong>
+      <button class="dev-icon-button" id="devLoginClose" type="button" aria-label="개발자 코드 입력 닫기">×</button>
+    </div>
+    <label class="dev-field">
+      <span>코드</span>
+      <input id="devCodeInput" type="password" autocomplete="off">
+    </label>
+    <p class="dev-message" id="devMessage" aria-live="polite"></p>
+    <button class="dev-confirm" id="devCodeSubmit" type="button">확인</button>
+  </div>
+
+  <div class="dev-badge" id="devBadge" hidden>DEV MODE</div>
+
+  <aside class="dev-panel" id="devPanel" aria-label="개발자 모드 패널" hidden>
+    <div class="dev-panel-head">
+      <h2>DEV MODE</h2>
+      <button class="dev-icon-button" id="devPanelClose" type="button" aria-label="개발자 모드 닫기">×</button>
+    </div>
+
+    <div class="dev-panel-body">
+      <label class="dev-field">
+        <span>캐릭터 A</span>
+        <select id="devSelectA"></select>
+      </label>
+      <label class="dev-field">
+        <span>캐릭터 B</span>
+        <select id="devSelectB"></select>
+      </label>
+
+      <button class="dev-action primary" id="devApplySelection" type="button">선택 적용</button>
+      <button class="dev-action primary" id="devTrainingMode" type="button">훈련장 모드</button>
+      <button class="dev-action" id="devResetCurrent" type="button">현재 조합 초기화</button>
+      <button class="dev-action" id="devRandomPair" type="button">랜덤 조합 적용</button>
+      <button class="dev-action muted" id="devCloseMode" type="button">개발자 모드 닫기</button>
+      <p class="dev-note" id="devPanelNote">전투 중에는 개발자 적용 버튼이 일시 비활성화됩니다.</p>
+    </div>
+  </aside>
+</body>
+</html>
